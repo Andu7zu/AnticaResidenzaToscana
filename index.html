@@ -112,8 +112,8 @@
             </div>
             <div class="rooms-grid">
                 <div class="room-card">
-                    <div class="room-image-placeholder">
-                        <span>Room Image</span>
+                    <div class="room-image">
+                        <img src="pics/DoubleBedRoom.jpg" alt="Deluxe Room">
                     </div>
                     <div class="room-content">
                         <h3>Deluxe Room</h3>
@@ -300,16 +300,16 @@
             </div>
             <div class="gallery-grid" id="galleryGrid">
                 <div class="gallery-item">
-                    <div class="gallery-placeholder">Room Image 1</div>
+                    <img src="pics/room 1.jpg" alt="Room 1" class="gallery-image">
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-placeholder">Room Image 2</div>
+                    <img src="pics/room 2.jpg" alt="Room 2" class="gallery-image">
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-placeholder">Room Image 3</div>
+                    <img src="pics/room 3.jpg" alt="Room 3" class="gallery-image">
                 </div>
                 <div class="gallery-item">
-                    <div class="gallery-placeholder">Room Image 4</div>
+                    <img src="pics/room 4.jpg" alt="Room 4" class="gallery-image">
                 </div>
             </div>
         </div>
@@ -385,6 +385,16 @@
             </div>
         </div>
     </footer>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox">
+        <button class="lightbox-close" id="lightboxClose">&times;</button>
+        <button class="lightbox-prev" id="lightboxPrev">&#10094;</button>
+        <button class="lightbox-next" id="lightboxNext">&#10095;</button>
+        <div class="lightbox-content">
+            <img id="lightboxImage" class="lightbox-image" src="" alt="">
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

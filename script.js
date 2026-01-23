@@ -49,38 +49,135 @@ window.addEventListener('scroll', () => {
     lastScroll = currentScroll;
 });
 
-// Gallery Tab Switching
-const galleryTabs = document.querySelectorAll('.gallery-tab');
-const galleryGrid = document.getElementById('galleryGrid');
+// Store current gallery images for lightbox navigation
+let currentGalleryImages = [];
+let currentImageIndex = 0;
+let galleryGrid = null;
+let galleryTabs = null;
 
-if (galleryTabs.length > 0) {
-    galleryTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active class from all tabs
-            galleryTabs.forEach(t => t.classList.remove('active'));
-            // Add active class to clicked tab
-            tab.classList.add('active');
-            
-            // Update gallery content based on tab
-            const galleryType = tab.getAttribute('data-gallery');
-            updateGallery(galleryType);
+// Gallery Tab Switching
+function initGallery() {
+    galleryTabs = document.querySelectorAll('.gallery-tab');
+    galleryGrid = document.getElementById('galleryGrid');
+
+    // Initialize gallery with rooms on page load
+    if (galleryGrid) {
+        // First, attach click handlers to existing images
+        attachGalleryClickHandlers();
+        updateGallery('rooms');
+    }
+
+    if (galleryTabs && galleryTabs.length > 0) {
+        galleryTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Remove active class from all tabs
+                galleryTabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Update gallery content based on tab
+                const galleryType = tab.getAttribute('data-gallery');
+                updateGallery(galleryType);
+            });
         });
+    }
+}
+
+function attachGalleryClickHandlers() {
+    if (!galleryGrid) return;
+    
+    // Use event delegation on the gallery grid
+    galleryGrid.addEventListener('click', (e) => {
+        const item = e.target.closest('.gallery-item');
+        if (!item) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const img = item.querySelector('img');
+        if (!img) return;
+        
+        // Find which image set we're in
+        const activeTab = document.querySelector('.gallery-tab.active');
+        const galleryType = activeTab ? activeTab.getAttribute('data-gallery') : 'rooms';
+        const images = {
+            'rooms': [
+                { src: 'pics/room 1.jpg', alt: 'Room 1' },
+                { src: 'pics/room 2.jpg', alt: 'Room 2' },
+                { src: 'pics/room 3.jpg', alt: 'Room 3' },
+                { src: 'pics/room 4.jpg', alt: 'Room 4' }
+            ],
+            'exterior': [
+                { src: 'pics/exterior 1.jpg', alt: 'Exterior View 1' },
+                { src: 'pics/exterior 2.jpg', alt: 'Exterior View 2' },
+                { src: 'pics/exterior 3.jpg', alt: 'Exterior View 3' },
+                { src: 'pics/exterior 4.jpg', alt: 'Exterior View 4' }
+            ],
+            'dining': [
+                { src: 'pics/food 1.jpg', alt: 'Food & Drink 1' },
+                { src: 'pics/food 2.jpg', alt: 'Food & Drink 2' }
+            ]
+        };
+        const imageSet = images[galleryType] || images['rooms'];
+        const galleryItems = Array.from(galleryGrid.querySelectorAll('.gallery-item:not([style*="display: none"])'));
+        const imgIndex = galleryItems.indexOf(item);
+        
+        if (imageSet[imgIndex]) {
+            openLightbox(imageSet[imgIndex].src, imageSet[imgIndex].alt, imgIndex);
+        }
+    });
+    
+    // Make sure all gallery items have pointer cursor
+    const galleryItems = galleryGrid.querySelectorAll('.gallery-item');
+    galleryItems.forEach(item => {
+        item.style.cursor = 'pointer';
     });
 }
 
 function updateGallery(type) {
-    // This function can be expanded to load different images based on the gallery type
-    const placeholders = galleryGrid.querySelectorAll('.gallery-placeholder');
-    const labels = {
-        'rooms': ['Room Image 1', 'Room Image 2', 'Room Image 3', 'Room Image 4'],
-        'exterior': ['Exterior View 1', 'Exterior View 2', 'Exterior View 3', 'Exterior View 4'],
-        'dining': ['Dining Area 1', 'Dining Area 2', 'Food & Drink 1', 'Food & Drink 2']
+    if (!galleryGrid) return;
+    
+    const galleryItems = galleryGrid.querySelectorAll('.gallery-item');
+    const images = {
+        'rooms': [
+            { src: 'pics/room 1.jpg', alt: 'Room 1' },
+            { src: 'pics/room 2.jpg', alt: 'Room 2' },
+            { src: 'pics/room 3.jpg', alt: 'Room 3' },
+            { src: 'pics/room 4.jpg', alt: 'Room 4' }
+        ],
+        'exterior': [
+            { src: 'pics/exterior 1.jpg', alt: 'Exterior View 1' },
+            { src: 'pics/exterior 2.jpg', alt: 'Exterior View 2' },
+            { src: 'pics/exterior 3.jpg', alt: 'Exterior View 3' },
+            { src: 'pics/exterior 4.jpg', alt: 'Exterior View 4' }
+        ],
+        'dining': [
+            { src: 'pics/food 1.jpg', alt: 'Food & Drink 1' },
+            { src: 'pics/food 2.jpg', alt: 'Food & Drink 2' }
+        ]
     };
     
-    if (labels[type]) {
-        placeholders.forEach((placeholder, index) => {
-            if (labels[type][index]) {
-                placeholder.textContent = labels[type][index];
+    // Store current images for lightbox
+    currentGalleryImages = images[type] || [];
+    
+    if (images[type]) {
+        galleryItems.forEach((item, index) => {
+            if (images[type][index]) {
+                let img = item.querySelector('img');
+                if (!img) {
+                    img = document.createElement('img');
+                    img.className = 'gallery-image';
+                    item.innerHTML = '';
+                    item.appendChild(img);
+                }
+                img.src = images[type][index].src;
+                img.alt = images[type][index].alt;
+                item.style.display = '';
+                item.style.cursor = 'pointer';
+            } else {
+                item.style.display = 'none';
             }
         });
     }
@@ -137,4 +234,133 @@ window.addEventListener('scroll', () => {
             link.classList.add('active');
         }
     });
+});
+
+// Lightbox functionality
+let lightbox = null;
+let lightboxImage = null;
+let lightboxClose = null;
+let lightboxPrev = null;
+let lightboxNext = null;
+
+function initLightbox() {
+    lightbox = document.getElementById('lightbox');
+    lightboxImage = document.getElementById('lightboxImage');
+    lightboxClose = document.getElementById('lightboxClose');
+    lightboxPrev = document.getElementById('lightboxPrev');
+    lightboxNext = document.getElementById('lightboxNext');
+
+    // Lightbox event listeners
+    if (lightboxClose) {
+        lightboxClose.addEventListener('click', closeLightbox);
+    }
+
+    if (lightboxPrev) {
+        lightboxPrev.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showPrevImage();
+        });
+    }
+
+    if (lightboxNext) {
+        lightboxNext.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showNextImage();
+        });
+    }
+
+    // Close lightbox when clicking outside the image
+    if (lightbox) {
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox || e.target.classList.contains('lightbox-content')) {
+                closeLightbox();
+            }
+        });
+        
+        // Prevent closing when clicking on the image itself
+        if (lightboxImage) {
+            lightboxImage.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (lightbox && lightbox.classList.contains('active')) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowRight') {
+                showNextImage();
+            } else if (e.key === 'ArrowLeft') {
+                showPrevImage();
+            }
+        }
+    });
+}
+
+function openLightbox(src, alt, index = 0) {
+    if (!lightbox || !lightboxImage) return;
+    
+    currentImageIndex = index;
+    lightboxImage.src = src;
+    lightboxImage.alt = alt;
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    updateLightboxNavigation();
+}
+
+function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function updateLightboxNavigation() {
+    if (!lightboxPrev || !lightboxNext) return;
+    
+    // Show/hide navigation buttons based on available images
+    if (currentGalleryImages.length <= 1) {
+        lightboxPrev.style.display = 'none';
+        lightboxNext.style.display = 'none';
+    } else {
+        lightboxPrev.style.display = 'block';
+        lightboxNext.style.display = 'block';
+    }
+}
+
+function showNextImage() {
+    if (currentGalleryImages.length > 0 && lightboxImage) {
+        currentImageIndex = (currentImageIndex + 1) % currentGalleryImages.length;
+        lightboxImage.src = currentGalleryImages[currentImageIndex].src;
+        lightboxImage.alt = currentGalleryImages[currentImageIndex].alt;
+    }
+}
+
+function showPrevImage() {
+    if (currentGalleryImages.length > 0 && lightboxImage) {
+        currentImageIndex = (currentImageIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length;
+        lightboxImage.src = currentGalleryImages[currentImageIndex].src;
+        lightboxImage.alt = currentGalleryImages[currentImageIndex].alt;
+    }
+}
+
+// Make room image clickable
+function initRoomImage() {
+    const roomImage = document.querySelector('.room-image img');
+    if (roomImage) {
+        roomImage.style.cursor = 'pointer';
+        roomImage.addEventListener('click', () => {
+            // Create a single image array for the room
+            currentGalleryImages = [{ src: roomImage.src, alt: roomImage.alt }];
+            openLightbox(roomImage.src, roomImage.alt, 0);
+        });
+    }
+}
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    initGallery();
+    initLightbox();
+    initRoomImage();
 });
